@@ -176,10 +176,52 @@
         }
         .case-top {
             display: grid;
-            grid-template-columns: 1fr auto;
-            gap: 12px;
+            grid-template-columns: auto minmax(0, 1fr) auto;
+            gap: 14px;
             align-items: start;
         }
+        .avatar-frame {
+            width: clamp(138px, 18vw, 196px);
+            aspect-ratio: 1;
+            position: relative;
+            display: grid;
+            place-items: center;
+            border: 2px solid rgba(255,212,107,.48);
+            border-radius: 22px;
+            background:
+                linear-gradient(145deg, rgba(255,212,107,.14), transparent 45%),
+                radial-gradient(circle at center, rgba(143,255,168,.16), rgba(0,0,0,.5));
+            box-shadow: inset 0 0 32px rgba(143,255,168,.08), 0 16px 34px rgba(0,0,0,.34);
+            overflow: hidden;
+        }
+        .avatar-frame::before {
+            content: "DOSSIER";
+            position: absolute;
+            top: 8px;
+            left: 10px;
+            color: rgba(255,212,107,.7);
+            font-size: .68rem;
+            letter-spacing: .18em;
+            z-index: 2;
+        }
+        .avatar-frame svg { width: 100%; height: 100%; filter: drop-shadow(0 10px 16px rgba(0,0,0,.5)); }
+        .avatar-meta { margin-top: 9px; color: var(--muted); line-height: 1.35; }
+        .avatar-meta strong { color: var(--pip-green); }
+        .avatar-roster {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(118px, 1fr));
+            gap: 10px;
+        }
+        .avatar-tile {
+            border: 1px solid rgba(143,255,168,.18);
+            border-radius: 16px;
+            padding: 8px;
+            background: rgba(0,0,0,.18);
+            text-align: center;
+            color: var(--muted);
+            font-size: .78rem;
+        }
+        .avatar-tile svg { width: 76px; height: 76px; display: block; margin: 0 auto 4px; }
         .wastelander-name { font-size: clamp(1.8rem, 5vw, 4rem); color: var(--pip-amber); line-height: 1; text-shadow: 0 0 24px rgba(255,212,107,.35); word-break: break-word; }
         .karma { display: grid; gap: 6px; min-width: 130px; text-align: right; }
         .meter { height: 14px; border: 1px solid rgba(143,255,168,.4); border-radius: 999px; background: rgba(0,0,0,.35); overflow: hidden; }
@@ -226,14 +268,23 @@
         .queue { display: grid; gap: 10px; }
         .queue-item {
             display: grid;
-            grid-template-columns: 1fr auto;
-            gap: 8px;
+            grid-template-columns: auto 1fr auto;
+            gap: 10px;
             align-items: center;
             padding: 10px;
             border: 1px solid rgba(143,255,168,.2);
             border-radius: 16px;
             background: rgba(0,0,0,.2);
         }
+        .queue-avatar {
+            width: 48px;
+            height: 48px;
+            border: 1px solid rgba(255,212,107,.35);
+            border-radius: 14px;
+            overflow: hidden;
+            background: rgba(0,0,0,.3);
+        }
+        .queue-avatar svg { width: 100%; height: 100%; display: block; }
         .tag { display: inline-block; padding: 4px 8px; border-radius: 999px; color: var(--pip-amber); background: rgba(255,212,107,.1); font-size: .76rem; }
         .toast { position: fixed; left: 50%; bottom: max(18px, env(safe-area-inset-bottom)); z-index: 20; transform: translateX(-50%); width: min(620px, calc(100% - 28px)); padding: 12px 14px; border-radius: 16px; color: var(--pip-green); background: rgba(4,16,8,.95); border: 1px solid rgba(143,255,168,.42); box-shadow: var(--shadow); opacity: 0; pointer-events: none; transition: opacity .2s ease; }
         .toast.show { opacity: 1; }
@@ -249,6 +300,7 @@
 
         @media (max-width: 900px) {
             header, main, .case-top, .grid2 { grid-template-columns: 1fr; }
+            .avatar-frame { width: min(100%, 260px); justify-self: center; }
             .status-pill, .karma { justify-self: stretch; text-align: left; }
             .verdict-board, .choices { grid-template-columns: 1fr 1fr; }
             .vault-badge { width: 74px; height: 74px; }
@@ -260,7 +312,10 @@
             .panel-body { padding: 12px; }
             .verdict-board, .choices { grid-template-columns: 1fr; }
             button { width: 100%; min-height: 48px; }
+            .queue-item { grid-template-columns: auto 1fr; }
+            .queue-item button { grid-column: 1 / -1; }
             .history-tools { display: grid; grid-template-columns: 1fr; }
+            .avatar-roster { grid-template-columns: repeat(2, 1fr); }
         }
     </style>
 </head>
@@ -309,6 +364,9 @@
 
                     <div class="panel-title" style="margin: 8px -16px -4px; border-top: 1px solid rgba(143,255,168,.18);">Очередь у шлюза</div>
                     <div id="queue" class="queue"></div>
+
+                    <div class="panel-title" style="margin: 8px -16px -4px; border-top: 1px solid rgba(143,255,168,.18);">Портреты Пустоши</div>
+                    <div id="avatarRoster" class="avatar-roster"></div>
                 </div>
             </section>
 
@@ -316,6 +374,10 @@
                 <div class="panel-title">Зал суда Убежища <span id="caseCounter" class="tag">дел: 0</span></div>
                 <div class="panel-body case-card">
                     <div class="case-top">
+                        <div>
+                            <div id="avatarPortrait" class="avatar-frame" aria-label="Портрет беженца"></div>
+                            <div id="avatarMeta" class="avatar-meta small">Архив портретов Пустоши ждёт первого дела.</div>
+                        </div>
                         <div>
                             <p class="small">Текущее дело</p>
                             <div id="caseName" class="wastelander-name">нет беженца</div>
@@ -360,6 +422,34 @@
         const OAUTH_SCOPES = ['user:read:chat', 'channel:moderate', 'moderator:manage:banned_users'];
         let eventSubUrl = 'wss://eventsub.wss.twitch.tv/ws';
 
+        // Был конфликт Git между базовой и расширенной версией интерфейса.
+        // Оставлена расширенная версия, так как она содержит дополнительный
+        // функционал и полностью совместима с существующей логикой приложения.
+        // Что было не так: в конфликте были одновременно базовая разметка дела
+        // без портретов и расширенная версия с галереей, AVATARS и привязкой
+        // avatarId к кейсам; при сохранении обеих сторон HTML/JS получал бы
+        // merge markers, дубли и ссылки на отсутствующие элементы.
+        // Почему возникала ошибка: Git не смог автоматически объединить места,
+        // где обе ветки меняли одну и ту же карточку дела, очередь, media queries
+        // и стартовую инициализацию приложения.
+        // Что было исправлено: удалены конфликтные маркеры и упрощённая ветка,
+        // сохранены аватары, галерея, мобильная адаптация, fallback avatarId для
+        // старых кейсов и единственная инициализация галереи персонажей при запуске.
+        const AVATARS = [
+            { id: 'glowing-ghoul', title: 'Светящийся гуль', clan: 'Старый реактор', skin: '#9fc36d', hair: '#d7ff89', outfit: '#394b2e', accent: '#b7ff4a', mark: 'rad' },
+            { id: 'feral-ghoul', title: 'Дикий гуль', clan: 'Метро безумцев', skin: '#7d6b55', hair: '#2b241b', outfit: '#51352a', accent: '#ff7b45', mark: 'claws' },
+            { id: 'super-mutant', title: 'Супермутант', clan: 'Бетонный форт', skin: '#79a85a', hair: '#26351f', outfit: '#6d5732', accent: '#e0b63d', mark: 'jaw' },
+            { id: 'caravan-man', title: 'Караванщик', clan: 'Брамин-экспресс', skin: '#b98255', hair: '#3b2418', outfit: '#8d5a2c', accent: '#ffd46b', mark: 'hat' },
+            { id: 'tech-woman', title: 'Техножрица', clan: 'Искатели микросхем', skin: '#c48b68', hair: '#1b2027', outfit: '#355f8d', accent: '#8fffa8', mark: 'goggles' },
+            { id: 'raider-woman', title: 'Рейдерша', clan: 'Ржавые шипы', skin: '#a76a50', hair: '#7a1f2a', outfit: '#5f2f2a', accent: '#ff6b6b', mark: 'scar' },
+            { id: 'ranger-man', title: 'Следопыт', clan: 'Пыльные рейнджеры', skin: '#9d6849', hair: '#46301d', outfit: '#52614a', accent: '#d7c49a', mark: 'mask' },
+            { id: 'water-woman', title: 'Водоноска', clan: 'Синие цистерны', skin: '#b97861', hair: '#2f3b63', outfit: '#266a76', accent: '#77d9ff', mark: 'braid' },
+            { id: 'miner-man', title: 'Шахтёр', clan: 'Урановая артель', skin: '#8f6047', hair: '#21160f', outfit: '#4a4533', accent: '#f1c232', mark: 'lamp' },
+            { id: 'medic-woman', title: 'Полевой медик', clan: 'Стимпак-станция', skin: '#d09a73', hair: '#6c3b25', outfit: '#7d4d5f', accent: '#ffb7c8', mark: 'cross' },
+            { id: 'nomad-man', title: 'Кочевник', clan: 'Солнечные паруса', skin: '#7f513d', hair: '#151515', outfit: '#9c7138', accent: '#ffa940', mark: 'hood' },
+            { id: 'vault-girl', title: 'Беглянка из убежища', clan: 'Секция C-13', skin: '#c78b66', hair: '#f3cc5c', outfit: '#2554a4', accent: '#f7d44a', mark: 'vault' }
+        ];
+
         const el = (id) => document.getElementById(id);
         const state = loadState();
         let currentCaseId = state.currentCaseId || null;
@@ -391,6 +481,68 @@
 
         function nowLabel() {
             return new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+        }
+
+        function hashLogin(value) {
+            return String(value || 'vault69').split('').reduce((sum, char) => sum + char.charCodeAt(0), 0);
+        }
+
+        function pickAvatarId(login, displayName) {
+            const key = normalizeLogin(login || displayName || `wanderer_${Date.now()}`);
+            return AVATARS[hashLogin(key) % AVATARS.length].id;
+        }
+
+        function avatarById(id) {
+            return AVATARS.find((avatar) => avatar.id === id) || AVATARS[0];
+        }
+
+        function renderAvatarSvg(avatar, compact = false, uid = '') {
+            const safeUid = String(uid).replace(/[^a-z0-9_-]/gi, '');
+            const gradId = `bg-${avatar.id}-${compact ? 'mini' : 'main'}${safeUid ? `-${safeUid}` : ''}`;
+            const eyeGlow = avatar.mark === 'rad' ? avatar.accent : '#d7ffe0';
+            const teeth = avatar.mark === 'jaw' ? '<rect x="70" y="105" width="60" height="16" rx="4" fill="#e8ddbc"/><path d="M80 105v16M96 105v16M112 105v16M128 105v16" stroke="#5a3c29" stroke-width="3"/>' : '<path d="M82 110q18 13 36 0" fill="none" stroke="#2b1714" stroke-width="5" stroke-linecap="round"/>';
+            const mark = {
+                rad: '<circle cx="137" cy="72" r="10" fill="none" stroke="'+avatar.accent+'" stroke-width="4"/><path d="M137 58v28M123 72h28" stroke="'+avatar.accent+'" stroke-width="3"/>',
+                claws: '<path d="M54 76l-18-18M62 70L47 45M146 76l18-18" stroke="'+avatar.accent+'" stroke-width="5" stroke-linecap="round"/>',
+                jaw: '<path d="M58 91q42-22 84 0" fill="none" stroke="#415f31" stroke-width="9" stroke-linecap="round"/>',
+                hat: '<path d="M48 64h104l-18-24H66z" fill="'+avatar.accent+'"/><rect x="40" y="62" width="120" height="13" rx="6" fill="#5a321f"/>',
+                goggles: '<circle cx="78" cy="82" r="15" fill="none" stroke="'+avatar.accent+'" stroke-width="6"/><circle cx="122" cy="82" r="15" fill="none" stroke="'+avatar.accent+'" stroke-width="6"/><path d="M93 82h14" stroke="'+avatar.accent+'" stroke-width="5"/>',
+                scar: '<path d="M126 54l-18 46M132 69l-16 8M121 86l-15 8" stroke="'+avatar.accent+'" stroke-width="5" stroke-linecap="round"/>',
+                mask: '<path d="M57 75q43-20 86 0v28q-43 20-86 0z" fill="#222831" opacity=".82"/><circle cx="80" cy="89" r="7" fill="'+avatar.accent+'"/><circle cx="120" cy="89" r="7" fill="'+avatar.accent+'"/>',
+                braid: '<path d="M55 75q-18 36-2 74" fill="none" stroke="'+avatar.hair+'" stroke-width="14" stroke-linecap="round"/><circle cx="52" cy="119" r="8" fill="'+avatar.accent+'"/>',
+                lamp: '<rect x="72" y="42" width="56" height="20" rx="8" fill="#3a2d1e"/><circle cx="100" cy="52" r="10" fill="'+avatar.accent+'"/><path d="M100 26v16" stroke="'+avatar.accent+'" stroke-width="5"/>',
+                cross: '<path d="M124 54h14v14h14v14h-14v14h-14V82h-14V68h14z" fill="'+avatar.accent+'"/>',
+                hood: '<path d="M44 90q9-61 56-64q47 3 56 64q-54-31-112 0z" fill="'+avatar.outfit+'"/><path d="M58 82q42-38 84 0" fill="none" stroke="'+avatar.accent+'" stroke-width="6"/>',
+                vault: '<path d="M66 51q34-24 68 0l-7 24q-27-17-54 0z" fill="'+avatar.hair+'"/><text x="100" y="54" text-anchor="middle" font-size="18" font-weight="900" fill="'+avatar.accent+'">69</text>'
+            }[avatar.mark] || '';
+            return `
+                <svg viewBox="0 0 200 200" role="img" aria-label="${escapeHtml(avatar.title)}">
+                    <defs>
+                        <radialGradient id="${gradId}" cx="50%" cy="35%" r="68%">
+                            <stop offset="0" stop-color="${avatar.accent}" stop-opacity=".42"/>
+                            <stop offset="1" stop-color="#061009" stop-opacity=".96"/>
+                        </radialGradient>
+                    </defs>
+                    <rect width="200" height="200" rx="${compact ? 22 : 28}" fill="url(#${gradId})"/>
+                    <path d="M28 178q20-52 72-52t72 52z" fill="${avatar.outfit}"/>
+                    <path d="M56 154q44 23 88 0" fill="none" stroke="${avatar.accent}" stroke-width="7" opacity=".75"/>
+                    <circle cx="100" cy="88" r="49" fill="${avatar.skin}"/>
+                    <path d="M57 76q10-41 43-43q33 2 43 43q-40-21-86 0z" fill="${avatar.hair}"/>
+                    ${mark}
+                    <circle cx="79" cy="88" r="6" fill="${eyeGlow}"/>
+                    <circle cx="121" cy="88" r="6" fill="${eyeGlow}"/>
+                    <path d="M100 91l-8 16h16z" fill="#5a3427" opacity=".72"/>
+                    ${teeth}
+                    <path d="M42 178h116" stroke="rgba(255,212,107,.72)" stroke-width="5" stroke-linecap="round"/>
+                </svg>`;
+        }
+
+        function renderAvatarRoster() {
+            el('avatarRoster').innerHTML = AVATARS.map((avatar) => `
+                <div class="avatar-tile">
+                    ${renderAvatarSvg(avatar, true, `roster-${avatar.id}`)}
+                    <b>${escapeHtml(avatar.title)}</b><br>${escapeHtml(avatar.clan)}
+                </div>`).join('');
         }
 
         function toast(message) {
@@ -426,6 +578,7 @@
                 source,
                 createdAt: new Date().toISOString(),
                 history: messages,
+                avatarId: pickAvatarId(normalized, displayName),
                 karma: calculateKarma(messages, reason),
                 verdict: null
             };
@@ -458,17 +611,24 @@
             el('unbannedCount').textContent = state.stats.unban || 0;
             el('probationCount').textContent = state.stats.probation || 0;
             el('exiledCount').textContent = state.stats.exile || 0;
-            el('queue').innerHTML = state.cases.length ? state.cases.map((item) => `
+            el('queue').innerHTML = state.cases.length ? state.cases.map((item) => {
+                if (!item.avatarId) item.avatarId = pickAvatarId(item.login, item.displayName);
+                const queueAvatar = avatarById(item.avatarId);
+                return `
                 <div class="queue-item">
-                    <div><b>${escapeHtml(item.displayName)}</b><br><span class="small">${escapeHtml(item.source)} · ${new Date(item.createdAt).toLocaleString('ru-RU')}</span></div>
+                    <div class="queue-avatar" title="${escapeHtml(queueAvatar.title)}">${renderAvatarSvg(queueAvatar, true, item.id)}</div>
+                    <div><b>${escapeHtml(item.displayName)}</b><br><span class="small">${escapeHtml(item.source)} · ${escapeHtml(queueAvatar.title)} · ${new Date(item.createdAt).toLocaleString('ru-RU')}</span></div>
                     <button class="secondary" data-open-case="${item.id}">Дело</button>
-                </div>`).join('') : '<p class="small">Пока никто не стучит по двери убежища.</p>';
+                </div>`;
+            }).join('') : '<p class="small">Пока никто не стучит по двери убежища.</p>';
 
             if (!selected) {
                 el('caseName').textContent = 'нет беженца';
                 el('banReason').textContent = 'Ожидаем сигнал с Пустоши или ручной ввод.';
                 el('terminal').textContent = 'РОБКО: терминал разбанов активирован. Выберите дело, Хранитель.';
                 el('history').innerHTML = '<p class="small">История пуста.</p>';
+                el('avatarPortrait').innerHTML = renderAvatarSvg(AVATARS[0]);
+                el('avatarMeta').innerHTML = '<strong>Архив Пустоши</strong><br>Портрет будет выдан первому просителю.';
                 el('karmaScore').textContent = '50%';
                 el('karmaFill').style.width = '50%';
                 setVerdictButtons(true);
@@ -476,6 +636,10 @@
             }
 
             currentCaseId = selected.id;
+            if (!selected.avatarId) selected.avatarId = pickAvatarId(selected.login, selected.displayName);
+            const avatar = avatarById(selected.avatarId);
+            el('avatarPortrait').innerHTML = renderAvatarSvg(avatar);
+            el('avatarMeta').innerHTML = `<strong>${escapeHtml(avatar.title)}</strong><br>Клан: ${escapeHtml(avatar.clan)}`;
             el('caseName').textContent = selected.displayName;
             el('banReason').textContent = `Причина: ${selected.reason}`;
             el('karmaScore').textContent = `${selected.karma}%`;
@@ -664,6 +828,7 @@
         el('probationBtn').addEventListener('click', () => decide('probation'));
         el('exileBtn').addEventListener('click', () => decide('exile'));
 
+        renderAvatarRoster();
         if (location.hash.includes('access_token=')) connectTwitch();
         render();
     </script>
