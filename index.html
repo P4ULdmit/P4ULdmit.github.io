@@ -1,0 +1,805 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="theme-color" content="#112316">
+    <title>Убежище 69: Трибунал разбанов</title>
+    <style>
+        :root {
+            --pip-green: #8fffa8;
+            --pip-green-dim: #4eb968;
+            --pip-amber: #ffd46b;
+            --vault-blue: #2554a4;
+            --vault-yellow: #f7d44a;
+            --rust: #b7612d;
+            --bg: #0b130d;
+            --panel: rgba(13, 34, 20, .88);
+            --danger: #ff6b6b;
+            --ok: #7cff91;
+            --text: #d7ffe0;
+            --muted: #9fd1aa;
+            --shadow: 0 20px 80px rgba(0, 0, 0, .45);
+        }
+
+        * { box-sizing: border-box; }
+
+        html {
+            min-height: 100%;
+            background: #050805;
+        }
+
+        body {
+            min-height: 100vh;
+            margin: 0;
+            padding: max(14px, env(safe-area-inset-top)) max(14px, env(safe-area-inset-right)) max(18px, env(safe-area-inset-bottom)) max(14px, env(safe-area-inset-left));
+            color: var(--text);
+            font-family: "Trebuchet MS", "Arial Narrow", system-ui, sans-serif;
+            background:
+                radial-gradient(circle at top left, rgba(143, 255, 168, .18), transparent 32rem),
+                radial-gradient(circle at bottom right, rgba(183, 97, 45, .18), transparent 30rem),
+                linear-gradient(135deg, rgba(3, 6, 4, .98), rgba(16, 26, 12, .98));
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 10;
+            background: repeating-linear-gradient(0deg, rgba(255,255,255,.035), rgba(255,255,255,.035) 1px, transparent 1px, transparent 5px);
+            mix-blend-mode: screen;
+            opacity: .35;
+        }
+
+        .app {
+            width: min(1260px, 100%);
+            margin: 0 auto;
+        }
+
+        header {
+            display: grid;
+            grid-template-columns: auto 1fr auto;
+            gap: 16px;
+            align-items: center;
+            padding: 18px;
+            border: 2px solid rgba(143, 255, 168, .35);
+            border-radius: 28px;
+            background: linear-gradient(145deg, rgba(23, 57, 30, .88), rgba(7, 18, 12, .92));
+            box-shadow: var(--shadow), inset 0 0 30px rgba(143, 255, 168, .06);
+        }
+
+        .vault-badge {
+            width: 86px;
+            height: 86px;
+            display: grid;
+            place-items: center;
+            border-radius: 50%;
+            color: #10275f;
+            background: radial-gradient(circle, var(--vault-yellow) 0 47%, var(--vault-blue) 48% 100%);
+            border: 4px solid #f8ef99;
+            font-weight: 900;
+            font-size: 28px;
+            box-shadow: 0 0 0 5px rgba(37, 84, 164, .28), 0 10px 35px rgba(0,0,0,.45);
+        }
+
+        h1, h2, h3, p { margin-top: 0; }
+        h1 { margin-bottom: 4px; font-size: clamp(1.6rem, 4vw, 3.2rem); letter-spacing: .04em; color: var(--pip-green); text-shadow: 0 0 18px rgba(143,255,168,.45); }
+        .subtitle { margin: 0; color: var(--muted); line-height: 1.45; }
+        .status-pill { justify-self: end; padding: 12px 14px; border: 1px solid rgba(255,212,107,.45); border-radius: 999px; color: var(--pip-amber); background: rgba(255,212,107,.08); font-weight: 700; white-space: nowrap; }
+
+        main {
+            display: grid;
+            grid-template-columns: minmax(320px, .82fr) minmax(420px, 1.18fr);
+            gap: 18px;
+            margin-top: 18px;
+        }
+
+        .panel {
+            border: 1px solid rgba(143, 255, 168, .32);
+            border-radius: 24px;
+            background: var(--panel);
+            box-shadow: var(--shadow), inset 0 0 26px rgba(143, 255, 168, .045);
+            overflow: hidden;
+        }
+
+        .panel-title {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            align-items: center;
+            padding: 14px 16px;
+            color: var(--pip-green);
+            background: linear-gradient(90deg, rgba(143,255,168,.12), rgba(255,212,107,.08));
+            border-bottom: 1px solid rgba(143,255,168,.22);
+            text-transform: uppercase;
+            letter-spacing: .08em;
+            font-weight: 900;
+        }
+
+        .panel-body { padding: 16px; }
+        .stack { display: grid; gap: 12px; }
+        .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+        label { display: grid; gap: 6px; color: var(--muted); font-size: .92rem; }
+        input, textarea, select {
+            width: 100%;
+            border: 1px solid rgba(143,255,168,.32);
+            border-radius: 14px;
+            padding: 12px;
+            color: var(--text);
+            background: rgba(1, 8, 4, .7);
+            outline: none;
+            font: inherit;
+        }
+        textarea { min-height: 120px; resize: vertical; }
+        input:focus, textarea:focus, select:focus { border-color: var(--pip-green); box-shadow: 0 0 0 3px rgba(143,255,168,.14); }
+
+        button {
+            border: 0;
+            border-radius: 16px;
+            padding: 12px 14px;
+            color: #06140a;
+            background: linear-gradient(180deg, #b8ffc4, #5ddc78);
+            font: 900 .98rem/1 system-ui, sans-serif;
+            cursor: pointer;
+            box-shadow: 0 9px 0 rgba(24, 94, 39, .8), 0 18px 26px rgba(0,0,0,.25);
+            transition: transform .12s ease, box-shadow .12s ease, filter .12s ease;
+            touch-action: manipulation;
+        }
+        button:active { transform: translateY(4px); box-shadow: 0 5px 0 rgba(24, 94, 39, .8), 0 12px 20px rgba(0,0,0,.25); }
+        button.secondary { color: var(--text); background: linear-gradient(180deg, #2e5837, #193420); box-shadow: 0 9px 0 rgba(5, 16, 8, .9), 0 18px 26px rgba(0,0,0,.25); }
+        button.warn { color: #221002; background: linear-gradient(180deg, #ffe29b, #f5a844); box-shadow: 0 9px 0 rgba(132, 76, 16, .85), 0 18px 26px rgba(0,0,0,.25); }
+        button.danger { color: #2b0505; background: linear-gradient(180deg, #ffb6b6, #ff6868); box-shadow: 0 9px 0 rgba(126, 22, 22, .85), 0 18px 26px rgba(0,0,0,.25); }
+        button:disabled { cursor: not-allowed; filter: grayscale(.9) brightness(.65); transform: none; }
+
+        .small { font-size: .86rem; color: var(--muted); line-height: 1.5; }
+        .log {
+            min-height: 180px;
+            max-height: 360px;
+            overflow: auto;
+            padding: 12px;
+            border: 1px dashed rgba(143,255,168,.35);
+            border-radius: 18px;
+            background: rgba(0,0,0,.28);
+        }
+        .log-row { padding: 9px 0; border-bottom: 1px solid rgba(143,255,168,.13); }
+        .log-row:last-child { border-bottom: 0; }
+        .log-row b { color: var(--pip-amber); }
+        .log-time { color: rgba(215,255,224,.58); font-size: .78rem; }
+
+        .case-card {
+            display: grid;
+            gap: 14px;
+            min-height: 100%;
+        }
+        .case-top {
+            display: grid;
+            grid-template-columns: auto minmax(0, 1fr) auto;
+            gap: 14px;
+            align-items: start;
+        }
+        .avatar-frame {
+            width: clamp(138px, 18vw, 196px);
+            aspect-ratio: 1;
+            position: relative;
+            display: grid;
+            place-items: center;
+            border: 2px solid rgba(255,212,107,.48);
+            border-radius: 22px;
+            background:
+                linear-gradient(145deg, rgba(255,212,107,.14), transparent 45%),
+                radial-gradient(circle at center, rgba(143,255,168,.16), rgba(0,0,0,.5));
+            box-shadow: inset 0 0 32px rgba(143,255,168,.08), 0 16px 34px rgba(0,0,0,.34);
+            overflow: hidden;
+        }
+        .avatar-frame::before {
+            content: "DOSSIER";
+            position: absolute;
+            top: 8px;
+            left: 10px;
+            color: rgba(255,212,107,.7);
+            font-size: .68rem;
+            letter-spacing: .18em;
+            z-index: 2;
+        }
+        .avatar-frame svg { width: 100%; height: 100%; filter: drop-shadow(0 10px 16px rgba(0,0,0,.5)); }
+        .avatar-meta { margin-top: 9px; color: var(--muted); line-height: 1.35; }
+        .avatar-meta strong { color: var(--pip-green); }
+        .avatar-roster {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(118px, 1fr));
+            gap: 10px;
+        }
+        .avatar-tile {
+            border: 1px solid rgba(143,255,168,.18);
+            border-radius: 16px;
+            padding: 8px;
+            background: rgba(0,0,0,.18);
+            text-align: center;
+            color: var(--muted);
+            font-size: .78rem;
+        }
+        .avatar-tile svg { width: 76px; height: 76px; display: block; margin: 0 auto 4px; }
+        .wastelander-name { font-size: clamp(1.8rem, 5vw, 4rem); color: var(--pip-amber); line-height: 1; text-shadow: 0 0 24px rgba(255,212,107,.35); word-break: break-word; }
+        .karma { display: grid; gap: 6px; min-width: 130px; text-align: right; }
+        .meter { height: 14px; border: 1px solid rgba(143,255,168,.4); border-radius: 999px; background: rgba(0,0,0,.35); overflow: hidden; }
+        .meter > span { display: block; height: 100%; width: 50%; background: linear-gradient(90deg, var(--danger), var(--pip-amber), var(--ok)); transition: width .25s ease; }
+
+        .verdict-board {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+        }
+        .verdict {
+            padding: 14px 10px;
+            border-radius: 18px;
+            border: 1px solid rgba(143,255,168,.24);
+            background: rgba(0,0,0,.24);
+            text-align: center;
+        }
+        .verdict strong { display: block; font-size: 1.5rem; color: var(--pip-green); }
+
+        .history-tools { display: flex; flex-wrap: wrap; gap: 10px; }
+        .message-chip {
+            display: grid;
+            gap: 3px;
+            padding: 10px;
+            border-radius: 14px;
+            background: rgba(143,255,168,.07);
+        }
+
+        .choices { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+        .terminal {
+            position: relative;
+            min-height: 150px;
+            padding: 16px;
+            border-radius: 18px;
+            color: var(--pip-green);
+            background: radial-gradient(circle at center, rgba(143,255,168,.13), rgba(0,0,0,.45)), #071009;
+            border: 1px solid rgba(143,255,168,.4);
+            font-family: "Courier New", monospace;
+            line-height: 1.55;
+        }
+        .terminal::after { content: "_"; animation: blink 1s steps(2, start) infinite; }
+        @keyframes blink { 50% { opacity: 0; } }
+
+        .queue { display: grid; gap: 10px; }
+        .queue-item {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 8px;
+            align-items: center;
+            padding: 10px;
+            border: 1px solid rgba(143,255,168,.2);
+            border-radius: 16px;
+            background: rgba(0,0,0,.2);
+        }
+        .tag { display: inline-block; padding: 4px 8px; border-radius: 999px; color: var(--pip-amber); background: rgba(255,212,107,.1); font-size: .76rem; }
+        .toast { position: fixed; left: 50%; bottom: max(18px, env(safe-area-inset-bottom)); z-index: 20; transform: translateX(-50%); width: min(620px, calc(100% - 28px)); padding: 12px 14px; border-radius: 16px; color: var(--pip-green); background: rgba(4,16,8,.95); border: 1px solid rgba(143,255,168,.42); box-shadow: var(--shadow); opacity: 0; pointer-events: none; transition: opacity .2s ease; }
+        .toast.show { opacity: 1; }
+
+        details {
+            border: 1px solid rgba(143,255,168,.22);
+            border-radius: 16px;
+            padding: 10px 12px;
+            background: rgba(0,0,0,.18);
+        }
+        summary { cursor: pointer; color: var(--pip-amber); font-weight: 800; }
+        code { color: var(--pip-amber); }
+
+        @media (max-width: 900px) {
+            header, main, .case-top, .grid2 { grid-template-columns: 1fr; }
+            .avatar-frame { width: min(100%, 260px); justify-self: center; }
+            .status-pill, .karma { justify-self: stretch; text-align: left; }
+            .verdict-board, .choices { grid-template-columns: 1fr 1fr; }
+            .vault-badge { width: 74px; height: 74px; }
+        }
+
+        @media (max-width: 560px) {
+            body { padding: 10px; }
+            header, .panel { border-radius: 20px; }
+            .panel-body { padding: 12px; }
+            .verdict-board, .choices { grid-template-columns: 1fr; }
+            button { width: 100%; min-height: 48px; }
+            .history-tools { display: grid; grid-template-columns: 1fr; }
+            .avatar-roster { grid-template-columns: repeat(2, 1fr); }
+        }
+    </style>
+</head>
+<body>
+    <div class="app">
+        <header>
+            <div class="vault-badge">69</div>
+            <div>
+                <h1>Убежище 69: Трибунал разбанов</h1>
+                <p class="subtitle">Денис WELOVEGAMES — Хранитель убежища. Забаненные чаттерсы — беженцы с радиоактивных пустошей. Проверьте последние 20–30 реплик и решите, пустить ли их обратно к реактору чата.</p>
+            </div>
+            <div id="connectionStatus" class="status-pill">OFFLINE · ручной режим</div>
+        </header>
+
+        <main>
+            <section class="panel">
+                <div class="panel-title">Пульт Хранителя <span class="tag">iPhone ready</span></div>
+                <div class="panel-body stack">
+                    <div class="grid2">
+                        <label>Канал Twitch
+                            <input id="channelLogin" value="welovegames" autocapitalize="off" autocomplete="username" placeholder="welovegames">
+                        </label>
+                        <label>Client ID приложения
+                            <input id="clientId" autocapitalize="off" placeholder="из Twitch Developer Console">
+                        </label>
+                    </div>
+                    <div class="history-tools">
+                        <button id="connectTwitch">Подключить Twitch</button>
+                        <button id="demoCase" class="secondary">Демо-беженец</button>
+                        <button id="exportCase" class="warn">Экспорт дела</button>
+                    </div>
+                    <p class="small">Интеграция использует OAuth token flow, Helix и EventSub WebSocket. Twitch не отдаёт архив старых сообщений по API, поэтому игра хранит живой буфер последних 30 сообщений с момента подключения и автоматически собирает дело при бане/таймауте.</p>
+
+                    <details>
+                        <summary>Что нужно включить в Twitch</summary>
+                        <p class="small">Создайте public OAuth client, добавьте этот URL как redirect URI и выдайте модератору scopes: <code>user:read:chat channel:moderate moderator:manage:banned_users</code>. EventSub ловит <code>channel.chat.message</code> и <code>channel.ban</code>, а кнопка «Разбан» вызывает <code>DELETE /helix/moderation/bans</code>.</p>
+                    </details>
+
+                    <label>Добавить дело вручную
+                        <input id="manualUser" placeholder="ник изгнанника">
+                    </label>
+                    <label>История вручную — новые сообщения сверху
+                        <textarea id="manualHistory" placeholder="последняя реплика\nпредыдущая реплика\nещё более старая"></textarea>
+                    </label>
+                    <button id="addManual" class="warn">Открыть слушание</button>
+
+                    <div class="panel-title" style="margin: 8px -16px -4px; border-top: 1px solid rgba(143,255,168,.18);">Очередь у шлюза</div>
+                    <div id="queue" class="queue"></div>
+
+                    <div class="panel-title" style="margin: 8px -16px -4px; border-top: 1px solid rgba(143,255,168,.18);">Портреты Пустоши</div>
+                    <div id="avatarRoster" class="avatar-roster"></div>
+                </div>
+            </section>
+
+            <section class="panel">
+                <div class="panel-title">Зал суда Убежища <span id="caseCounter" class="tag">дел: 0</span></div>
+                <div class="panel-body case-card">
+                    <div class="case-top">
+                        <div>
+                            <div id="avatarPortrait" class="avatar-frame" aria-label="Портрет беженца"></div>
+                            <div id="avatarMeta" class="avatar-meta small">Архив портретов Пустоши ждёт первого дела.</div>
+                        </div>
+                        <div>
+                            <p class="small">Текущее дело</p>
+                            <div id="caseName" class="wastelander-name">нет беженца</div>
+                            <p id="banReason" class="small">Ожидаем сигнал с Пустоши или ручной ввод.</p>
+                        </div>
+                        <div class="karma">
+                            <span>Рад-карма</span>
+                            <div class="meter"><span id="karmaFill"></span></div>
+                            <strong id="karmaScore">50%</strong>
+                        </div>
+                    </div>
+
+                    <div class="verdict-board">
+                        <div class="verdict"><strong id="totalCases">0</strong>дел</div>
+                        <div class="verdict"><strong id="unbannedCount">0</strong>разбан</div>
+                        <div class="verdict"><strong id="probationCount">0</strong>испытание</div>
+                        <div class="verdict"><strong id="exiledCount">0</strong>изгнание</div>
+                    </div>
+
+                    <div class="terminal" id="terminal">РОБКО: терминал разбанов активирован. Выберите дело, Хранитель.</div>
+
+                    <div>
+                        <h3>Последние сообщения подозреваемого</h3>
+                        <div id="history" class="log"></div>
+                    </div>
+
+                    <div class="choices">
+                        <button id="unbanBtn">Открыть шлюз</button>
+                        <button id="probationBtn" class="warn">Испытательный срок</button>
+                        <button id="exileBtn" class="danger">Оставить в бане</button>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <div id="toast" class="toast"></div>
+
+    <script>
+        const MAX_HISTORY = 30;
+        const STORAGE_KEY = 'vault69-unban-state-v1';
+        const OAUTH_SCOPES = ['user:read:chat', 'channel:moderate', 'moderator:manage:banned_users'];
+        let eventSubUrl = 'wss://eventsub.wss.twitch.tv/ws';
+        const AVATARS = [
+            { id: 'glowing-ghoul', title: 'Светящийся гуль', clan: 'Старый реактор', skin: '#9fc36d', hair: '#d7ff89', outfit: '#394b2e', accent: '#b7ff4a', mark: 'rad' },
+            { id: 'feral-ghoul', title: 'Дикий гуль', clan: 'Метро безумцев', skin: '#7d6b55', hair: '#2b241b', outfit: '#51352a', accent: '#ff7b45', mark: 'claws' },
+            { id: 'super-mutant', title: 'Супермутант', clan: 'Бетонный форт', skin: '#79a85a', hair: '#26351f', outfit: '#6d5732', accent: '#e0b63d', mark: 'jaw' },
+            { id: 'caravan-man', title: 'Караванщик', clan: 'Брамин-экспресс', skin: '#b98255', hair: '#3b2418', outfit: '#8d5a2c', accent: '#ffd46b', mark: 'hat' },
+            { id: 'tech-woman', title: 'Техножрица', clan: 'Искатели микросхем', skin: '#c48b68', hair: '#1b2027', outfit: '#355f8d', accent: '#8fffa8', mark: 'goggles' },
+            { id: 'raider-woman', title: 'Рейдерша', clan: 'Ржавые шипы', skin: '#a76a50', hair: '#7a1f2a', outfit: '#5f2f2a', accent: '#ff6b6b', mark: 'scar' },
+            { id: 'ranger-man', title: 'Следопыт', clan: 'Пыльные рейнджеры', skin: '#9d6849', hair: '#46301d', outfit: '#52614a', accent: '#d7c49a', mark: 'mask' },
+            { id: 'water-woman', title: 'Водоноска', clan: 'Синие цистерны', skin: '#b97861', hair: '#2f3b63', outfit: '#266a76', accent: '#77d9ff', mark: 'braid' },
+            { id: 'miner-man', title: 'Шахтёр', clan: 'Урановая артель', skin: '#8f6047', hair: '#21160f', outfit: '#4a4533', accent: '#f1c232', mark: 'lamp' },
+            { id: 'medic-woman', title: 'Полевой медик', clan: 'Стимпак-станция', skin: '#d09a73', hair: '#6c3b25', outfit: '#7d4d5f', accent: '#ffb7c8', mark: 'cross' },
+            { id: 'nomad-man', title: 'Кочевник', clan: 'Солнечные паруса', skin: '#7f513d', hair: '#151515', outfit: '#9c7138', accent: '#ffa940', mark: 'hood' },
+            { id: 'vault-girl', title: 'Беглянка из убежища', clan: 'Секция C-13', skin: '#c78b66', hair: '#f3cc5c', outfit: '#2554a4', accent: '#f7d44a', mark: 'vault' }
+        ];
+
+        const el = (id) => document.getElementById(id);
+        const state = loadState();
+        let currentCaseId = state.currentCaseId || null;
+        let twitch = {
+            token: sessionStorage.getItem('vault69-token') || '',
+            clientId: localStorage.getItem('vault69-client-id') || '',
+            channelLogin: localStorage.getItem('vault69-channel') || 'welovegames',
+            moderatorId: '',
+            broadcasterId: '',
+            socket: null,
+            sessionId: ''
+        };
+
+        el('clientId').value = twitch.clientId;
+        el('channelLogin').value = twitch.channelLogin;
+
+        function loadState() {
+            try {
+                return JSON.parse(localStorage.getItem(STORAGE_KEY)) || { cases: [], stats: { unban: 0, probation: 0, exile: 0 } };
+            } catch (error) {
+                return { cases: [], stats: { unban: 0, probation: 0, exile: 0 } };
+            }
+        }
+
+        function saveState() {
+            state.currentCaseId = currentCaseId;
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+        }
+
+        function nowLabel() {
+            return new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+        }
+
+        function hashLogin(value) {
+            return String(value || 'vault69').split('').reduce((sum, char) => sum + char.charCodeAt(0), 0);
+        }
+
+        function pickAvatarId(login, displayName) {
+            const key = normalizeLogin(login || displayName || `wanderer_${Date.now()}`);
+            return AVATARS[hashLogin(key) % AVATARS.length].id;
+        }
+
+        function avatarById(id) {
+            return AVATARS.find((avatar) => avatar.id === id) || AVATARS[0];
+        }
+
+        function renderAvatarSvg(avatar, compact = false) {
+            const gradId = `bg-${avatar.id}-${compact ? 'mini' : 'main'}`;
+            const eyeGlow = avatar.mark === 'rad' ? avatar.accent : '#d7ffe0';
+            const teeth = avatar.mark === 'jaw' ? '<rect x="70" y="105" width="60" height="16" rx="4" fill="#e8ddbc"/><path d="M80 105v16M96 105v16M112 105v16M128 105v16" stroke="#5a3c29" stroke-width="3"/>' : '<path d="M82 110q18 13 36 0" fill="none" stroke="#2b1714" stroke-width="5" stroke-linecap="round"/>';
+            const mark = {
+                rad: '<circle cx="137" cy="72" r="10" fill="none" stroke="'+avatar.accent+'" stroke-width="4"/><path d="M137 58v28M123 72h28" stroke="'+avatar.accent+'" stroke-width="3"/>',
+                claws: '<path d="M54 76l-18-18M62 70L47 45M146 76l18-18" stroke="'+avatar.accent+'" stroke-width="5" stroke-linecap="round"/>',
+                jaw: '<path d="M58 91q42-22 84 0" fill="none" stroke="#415f31" stroke-width="9" stroke-linecap="round"/>',
+                hat: '<path d="M48 64h104l-18-24H66z" fill="'+avatar.accent+'"/><rect x="40" y="62" width="120" height="13" rx="6" fill="#5a321f"/>',
+                goggles: '<circle cx="78" cy="82" r="15" fill="none" stroke="'+avatar.accent+'" stroke-width="6"/><circle cx="122" cy="82" r="15" fill="none" stroke="'+avatar.accent+'" stroke-width="6"/><path d="M93 82h14" stroke="'+avatar.accent+'" stroke-width="5"/>',
+                scar: '<path d="M126 54l-18 46M132 69l-16 8M121 86l-15 8" stroke="'+avatar.accent+'" stroke-width="5" stroke-linecap="round"/>',
+                mask: '<path d="M57 75q43-20 86 0v28q-43 20-86 0z" fill="#222831" opacity=".82"/><circle cx="80" cy="89" r="7" fill="'+avatar.accent+'"/><circle cx="120" cy="89" r="7" fill="'+avatar.accent+'"/>',
+                braid: '<path d="M55 75q-18 36-2 74" fill="none" stroke="'+avatar.hair+'" stroke-width="14" stroke-linecap="round"/><circle cx="52" cy="119" r="8" fill="'+avatar.accent+'"/>',
+                lamp: '<rect x="72" y="42" width="56" height="20" rx="8" fill="#3a2d1e"/><circle cx="100" cy="52" r="10" fill="'+avatar.accent+'"/><path d="M100 26v16" stroke="'+avatar.accent+'" stroke-width="5"/>',
+                cross: '<path d="M124 54h14v14h14v14h-14v14h-14V82h-14V68h14z" fill="'+avatar.accent+'"/>',
+                hood: '<path d="M44 90q9-61 56-64q47 3 56 64q-54-31-112 0z" fill="'+avatar.outfit+'"/><path d="M58 82q42-38 84 0" fill="none" stroke="'+avatar.accent+'" stroke-width="6"/>',
+                vault: '<path d="M66 51q34-24 68 0l-7 24q-27-17-54 0z" fill="'+avatar.hair+'"/><text x="100" y="54" text-anchor="middle" font-size="18" font-weight="900" fill="'+avatar.accent+'">69</text>'
+            }[avatar.mark] || '';
+            return `
+                <svg viewBox="0 0 200 200" role="img" aria-label="${escapeHtml(avatar.title)}">
+                    <defs>
+                        <radialGradient id="${gradId}" cx="50%" cy="35%" r="68%">
+                            <stop offset="0" stop-color="${avatar.accent}" stop-opacity=".42"/>
+                            <stop offset="1" stop-color="#061009" stop-opacity=".96"/>
+                        </radialGradient>
+                    </defs>
+                    <rect width="200" height="200" rx="${compact ? 22 : 28}" fill="url(#${gradId})"/>
+                    <path d="M28 178q20-52 72-52t72 52z" fill="${avatar.outfit}"/>
+                    <path d="M56 154q44 23 88 0" fill="none" stroke="${avatar.accent}" stroke-width="7" opacity=".75"/>
+                    <circle cx="100" cy="88" r="49" fill="${avatar.skin}"/>
+                    <path d="M57 76q10-41 43-43q33 2 43 43q-40-21-86 0z" fill="${avatar.hair}"/>
+                    ${mark}
+                    <circle cx="79" cy="88" r="6" fill="${eyeGlow}"/>
+                    <circle cx="121" cy="88" r="6" fill="${eyeGlow}"/>
+                    <path d="M100 91l-8 16h16z" fill="#5a3427" opacity=".72"/>
+                    ${teeth}
+                    <path d="M42 178h116" stroke="rgba(255,212,107,.72)" stroke-width="5" stroke-linecap="round"/>
+                </svg>`;
+        }
+
+        function renderAvatarRoster() {
+            el('avatarRoster').innerHTML = AVATARS.map((avatar) => `
+                <div class="avatar-tile">
+                    ${renderAvatarSvg(avatar, true)}
+                    <b>${escapeHtml(avatar.title)}</b><br>${escapeHtml(avatar.clan)}
+                </div>`).join('');
+        }
+
+        function toast(message) {
+            const node = el('toast');
+            node.textContent = message;
+            node.classList.add('show');
+            clearTimeout(toast.timer);
+            toast.timer = setTimeout(() => node.classList.remove('show'), 3200);
+        }
+
+        function normalizeLogin(login) {
+            return login.trim().replace(/^@/, '').toLowerCase();
+        }
+
+        function rememberMessage(userLogin, userName, text, createdAt = new Date().toISOString()) {
+            const login = normalizeLogin(userLogin || userName || 'unknown');
+            if (!state.chatBuffers) state.chatBuffers = {};
+            if (!state.chatBuffers[login]) state.chatBuffers[login] = [];
+            state.chatBuffers[login].unshift({ text, createdAt, userName: userName || login });
+            state.chatBuffers[login] = state.chatBuffers[login].slice(0, MAX_HISTORY);
+            saveState();
+        }
+
+        function createCase({ login, displayName, reason = 'Причина неизвестна: пыльная буря скрыла протокол.', source = 'manual', history = [] }) {
+            const normalized = normalizeLogin(login || displayName || `wanderer_${Date.now()}`);
+            const savedHistory = history.length ? history : ((state.chatBuffers && state.chatBuffers[normalized]) || []);
+            const messages = savedHistory.slice(0, MAX_HISTORY).map((item) => typeof item === 'string' ? { text: item, createdAt: new Date().toISOString(), userName: displayName || normalized } : item);
+            const item = {
+                id: `${normalized}-${Date.now()}`,
+                login: normalized,
+                displayName: displayName || normalized,
+                reason,
+                source,
+                createdAt: new Date().toISOString(),
+                history: messages,
+                avatarId: pickAvatarId(normalized, displayName),
+                karma: calculateKarma(messages, reason),
+                verdict: null
+            };
+            state.cases.unshift(item);
+            currentCaseId = item.id;
+            saveState();
+            render();
+            toast(`Дело ${item.displayName} доставлено к шлюзу.`);
+        }
+
+        function calculateKarma(messages, reason) {
+            const bad = ['оскорб', 'дурак', 'идиот', 'токс', 'спам', 'scam', 'лох', 'ненавиж', 'ban', 'бот'];
+            const good = ['прости', 'сорри', 'извин', 'спасибо', 'люблю', 'уважаю', 'мир', 'gg', 'денис'];
+            const text = `${reason} ${messages.map((m) => m.text).join(' ')}`.toLowerCase();
+            let score = 55;
+            bad.forEach((word) => { if (text.includes(word)) score -= 8; });
+            good.forEach((word) => { if (text.includes(word)) score += 7; });
+            score += Math.min(messages.length, 30) - 15;
+            return Math.max(3, Math.min(97, score));
+        }
+
+        function activeCase() {
+            return state.cases.find((item) => item.id === currentCaseId) || state.cases[0] || null;
+        }
+
+        function render() {
+            const selected = activeCase();
+            el('caseCounter').textContent = `дел: ${state.cases.length}`;
+            el('totalCases').textContent = state.cases.length;
+            el('unbannedCount').textContent = state.stats.unban || 0;
+            el('probationCount').textContent = state.stats.probation || 0;
+            el('exiledCount').textContent = state.stats.exile || 0;
+            el('queue').innerHTML = state.cases.length ? state.cases.map((item) => `
+                <div class="queue-item">
+                    <div><b>${escapeHtml(item.displayName)}</b><br><span class="small">${escapeHtml(item.source)} · ${new Date(item.createdAt).toLocaleString('ru-RU')}</span></div>
+                    <button class="secondary" data-open-case="${item.id}">Дело</button>
+                </div>`).join('') : '<p class="small">Пока никто не стучит по двери убежища.</p>';
+
+            if (!selected) {
+                el('caseName').textContent = 'нет беженца';
+                el('banReason').textContent = 'Ожидаем сигнал с Пустоши или ручной ввод.';
+                el('terminal').textContent = 'РОБКО: терминал разбанов активирован. Выберите дело, Хранитель.';
+                el('history').innerHTML = '<p class="small">История пуста.</p>';
+                el('avatarPortrait').innerHTML = renderAvatarSvg(AVATARS[0]);
+                el('avatarMeta').innerHTML = '<strong>Архив Пустоши</strong><br>Портрет будет выдан первому просителю.';
+                el('karmaScore').textContent = '50%';
+                el('karmaFill').style.width = '50%';
+                setVerdictButtons(true);
+                return;
+            }
+
+            currentCaseId = selected.id;
+            if (!selected.avatarId) selected.avatarId = pickAvatarId(selected.login, selected.displayName);
+            const avatar = avatarById(selected.avatarId);
+            el('avatarPortrait').innerHTML = renderAvatarSvg(avatar);
+            el('avatarMeta').innerHTML = `<strong>${escapeHtml(avatar.title)}</strong><br>Клан: ${escapeHtml(avatar.clan)}`;
+            el('caseName').textContent = selected.displayName;
+            el('banReason').textContent = `Причина: ${selected.reason}`;
+            el('karmaScore').textContent = `${selected.karma}%`;
+            el('karmaFill').style.width = `${selected.karma}%`;
+            el('terminal').textContent = buildTerminalText(selected);
+            el('history').innerHTML = selected.history.length ? selected.history.map((msg, index) => `
+                <div class="log-row">
+                    <div><b>#${index + 1}</b> ${escapeHtml(msg.text)}</div>
+                    <div class="log-time">${escapeHtml(msg.userName || selected.displayName)} · ${new Date(msg.createdAt).toLocaleString('ru-RU')}</div>
+                </div>`).join('') : '<p class="small">Терминал не видел сообщений этого беженца после подключения. Допрос обязателен.</p>';
+            setVerdictButtons(Boolean(selected.verdict));
+            saveState();
+        }
+
+        function buildTerminalText(item) {
+            if (item.karma >= 70) return `РОБКО: ${item.displayName} излучает слабую, но добрую радиацию. Рекомендация: открыть шлюз под аплодисменты чата.`;
+            if (item.karma >= 43) return `РОБКО: ${item.displayName} мутировал неоднозначно. Рекомендация: испытательный срок, один стимпак и браслет наблюдения.`;
+            return `РОБКО: ${item.displayName} принёс песок, споры и токсичный осадок. Рекомендация: оставить за воротами до очищения.`;
+        }
+
+        function setVerdictButtons(disabled) {
+            ['unbanBtn', 'probationBtn', 'exileBtn'].forEach((id) => { el(id).disabled = disabled; });
+        }
+
+        function escapeHtml(value) {
+            return String(value).replace(/[&<>'"]/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[char]));
+        }
+
+        async function decide(verdict) {
+            const item = activeCase();
+            if (!item || item.verdict) return;
+            item.verdict = verdict;
+            state.stats[verdict] = (state.stats[verdict] || 0) + 1;
+            if (verdict === 'unban') await unbanOnTwitch(item);
+            if (verdict === 'probation') toast(`${item.displayName}: испытательный срок. Хранитель записал предупреждение.`);
+            if (verdict === 'exile') toast(`${item.displayName}: шлюз закрыт, Пустошь ждёт.`);
+            saveState();
+            render();
+        }
+
+        async function unbanOnTwitch(item) {
+            if (!twitch.token || !twitch.broadcasterId || !twitch.moderatorId || !item.userId) {
+                toast('Локальный разбан засчитан. Для API-разбана нужен Twitch login и user_id из EventSub.');
+                return;
+            }
+            const params = new URLSearchParams({ broadcaster_id: twitch.broadcasterId, moderator_id: twitch.moderatorId, user_id: item.userId });
+            const response = await fetch(`https://api.twitch.tv/helix/moderation/bans?${params}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${twitch.token}`, 'Client-Id': twitch.clientId }
+            });
+            toast(response.ok ? `Twitch подтвердил разбан ${item.displayName}.` : `Twitch API отказал: ${response.status}. Проверьте права модератора.`);
+        }
+
+        async function connectTwitch() {
+            twitch.clientId = el('clientId').value.trim();
+            twitch.channelLogin = normalizeLogin(el('channelLogin').value || 'welovegames');
+            localStorage.setItem('vault69-client-id', twitch.clientId);
+            localStorage.setItem('vault69-channel', twitch.channelLogin);
+            if (!twitch.clientId) {
+                toast('Введите Client ID из Twitch Developer Console.');
+                return;
+            }
+            const tokenFromHash = new URLSearchParams(location.hash.replace(/^#/, '')).get('access_token');
+            if (tokenFromHash) {
+                twitch.token = tokenFromHash;
+                sessionStorage.setItem('vault69-token', twitch.token);
+                history.replaceState(null, '', location.pathname + location.search);
+            }
+            if (!twitch.token) {
+                const redirect = encodeURIComponent(location.origin + location.pathname);
+                const scopes = encodeURIComponent(OAUTH_SCOPES.join(' '));
+                location.href = `https://id.twitch.tv/oauth2/authorize?response_type=token&client_id=${encodeURIComponent(twitch.clientId)}&redirect_uri=${redirect}&scope=${scopes}&force_verify=true`;
+                return;
+            }
+            await loadTwitchUsers();
+            openEventSubSocket();
+        }
+
+        async function twitchApi(path) {
+            const response = await fetch(`https://api.twitch.tv/helix/${path}`, {
+                headers: { 'Authorization': `Bearer ${twitch.token}`, 'Client-Id': twitch.clientId }
+            });
+            if (!response.ok) throw new Error(`Twitch API ${response.status}`);
+            return response.json();
+        }
+
+        async function loadTwitchUsers() {
+            const me = await twitchApi('users');
+            const broadcaster = await twitchApi(`users?login=${encodeURIComponent(twitch.channelLogin)}`);
+            twitch.moderatorId = me.data[0].id;
+            twitch.broadcasterId = broadcaster.data[0].id;
+            el('connectionStatus').textContent = `ONLINE · ${twitch.channelLogin}`;
+            toast(`Модератор ${me.data[0].display_name} подключён к ${broadcaster.data[0].display_name}.`);
+        }
+
+        function openEventSubSocket() {
+            if (twitch.socket) twitch.socket.close();
+            twitch.socket = new WebSocket(eventSubUrl);
+            twitch.socket.addEventListener('open', () => { el('connectionStatus').textContent = 'ONLINE · ждём сессию'; });
+            twitch.socket.addEventListener('message', async (event) => {
+                const payload = JSON.parse(event.data);
+                const type = payload.metadata && payload.metadata.message_type;
+                if (type === 'session_welcome') {
+                    twitch.sessionId = payload.payload.session.id;
+                    await subscribeEventSub('channel.chat.message', { broadcaster_user_id: twitch.broadcasterId, user_id: twitch.moderatorId });
+                    await subscribeEventSub('channel.ban', { broadcaster_user_id: twitch.broadcasterId });
+                    el('connectionStatus').textContent = `ONLINE · буфер ${MAX_HISTORY}`;
+                    toast('EventSub активен: собираю чат и баны.');
+                }
+                if (type === 'notification') handleEventSubNotification(payload.payload.subscription.type, payload.payload.event);
+                if (type === 'session_reconnect') {
+                    eventSubUrl = payload.payload.session.reconnect_url;
+                    openEventSubSocket();
+                }
+            });
+            twitch.socket.addEventListener('close', () => { el('connectionStatus').textContent = 'OFFLINE · reconnect вручную'; });
+        }
+
+        async function subscribeEventSub(type, condition) {
+            const response = await fetch('https://api.twitch.tv/helix/eventsub/subscriptions', {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${twitch.token}`, 'Client-Id': twitch.clientId, 'Content-Type': 'application/json' },
+                body: JSON.stringify({ type, version: '1', condition, transport: { method: 'websocket', session_id: twitch.sessionId } })
+            });
+            if (!response.ok) toast(`EventSub ${type}: ${response.status}. Проверьте scopes.`);
+        }
+
+        function handleEventSubNotification(type, event) {
+            if (type === 'channel.chat.message') {
+                const text = (event.message && event.message.text) || '';
+                rememberMessage(event.chatter_user_login, event.chatter_user_name, text, event.message_id ? new Date().toISOString() : event.created_at);
+            }
+            if (type === 'channel.ban') {
+                createCase({
+                    login: event.user_login,
+                    displayName: event.user_name,
+                    reason: event.reason || (event.ends_at ? 'Таймаут из Пустоши' : 'Бан без объяснения'),
+                    source: event.ends_at ? 'twitch timeout' : 'twitch ban',
+                    history: (state.chatBuffers && state.chatBuffers[normalizeLogin(event.user_login)]) || []
+                });
+                const item = activeCase();
+                if (item) item.userId = event.user_id;
+                saveState();
+            }
+        }
+
+        function addDemoCase() {
+            const demo = [
+                'Денис, я понял ошибку, больше не буду спорить с роботом-модером.',
+                'Сорри чат, меня занесло после рейда радтараканов.',
+                'gg, выпуск был мощный, убежище топ.',
+                'Почему меня забанили? Я только спросил про силовую броню.',
+                'WELOVEGAMES лучший хранитель, но дверь захлопнулась громко.'
+            ].map((text, index) => ({ text, userName: 'RadMaximus', createdAt: new Date(Date.now() - index * 65000).toISOString() }));
+            createCase({ login: 'radmaximus', displayName: 'RadMaximus', reason: 'Спор с модератором у входа в Убежище 69', source: 'demo', history: demo });
+        }
+
+        function exportCase() {
+            const item = activeCase();
+            if (!item) return toast('Экспортировать нечего.');
+            const blob = new Blob([JSON.stringify(item, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `vault69-${item.login}.json`;
+            link.click();
+            URL.revokeObjectURL(url);
+        }
+
+        el('connectTwitch').addEventListener('click', connectTwitch);
+        el('demoCase').addEventListener('click', addDemoCase);
+        el('exportCase').addEventListener('click', exportCase);
+        el('addManual').addEventListener('click', () => {
+            const login = el('manualUser').value.trim();
+            if (!login) return toast('Введите ник беженца.');
+            const history = el('manualHistory').value.split('\n').map((line) => line.trim()).filter(Boolean).slice(0, MAX_HISTORY).map((text, index) => ({ text, createdAt: new Date(Date.now() - index * 60000).toISOString(), userName: login }));
+            createCase({ login, displayName: login, reason: 'Ручное слушание от Хранителя', source: 'manual', history });
+            el('manualUser').value = '';
+            el('manualHistory').value = '';
+        });
+        el('queue').addEventListener('click', (event) => {
+            const id = event.target && event.target.dataset && event.target.dataset.openCase;
+            if (id) { currentCaseId = id; render(); }
+        });
+        el('unbanBtn').addEventListener('click', () => decide('unban'));
+        el('probationBtn').addEventListener('click', () => decide('probation'));
+        el('exileBtn').addEventListener('click', () => decide('exile'));
+
+        renderAvatarRoster();
+        if (location.hash.includes('access_token=')) connectTwitch();
+        render();
+    </script>
+</body>
+</html>
